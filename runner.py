@@ -6,8 +6,16 @@ process = Process()
 
 
 class ExampleModel:
-    def __init__(self, **kwargs):
-        print(kwargs)
+    first_: int
+    second_: int
+
+    def __init__(self, first, second):
+        self.first_ = first
+        self.second_ = second
+
+    def __call__(self):
+        print(self.first_, self.second_)
+        return self.first_ + self.second_
 
 
 models = [

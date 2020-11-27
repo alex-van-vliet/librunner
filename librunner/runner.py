@@ -10,4 +10,7 @@ class Runner:
         self.models_ = models
 
     def __call__(self):
-        print('Hi from runner')
+        while True:
+            model, parameters = self.process_.recv(0)
+            result = self.models_[model].create(parameters)()
+            self.process_.send(0, (model, parameters, result))

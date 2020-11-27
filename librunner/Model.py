@@ -27,3 +27,9 @@ class Model:
                     yield from generate(i + 1)
 
         yield from generate(0)
+
+    def create(self, parameters):
+        arguments = {name: values[parameter]
+                     for (name, values), parameter
+                     in zip(self.parameters_, parameters)}
+        return self.creator_(arguments)

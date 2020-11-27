@@ -16,3 +16,14 @@ class Process:
 
     def rank(self):
         return self.rank_
+
+    def send(self, destination, data):
+        self.comm_.send(data, dest=destination)
+
+    def recv(self, source):
+        return self.comm_.recv(source=source)
+
+    def recv_any(self):
+        status = MPI.Status()
+        self.comm_.Probe(status=status)
+        return status.source, self.comm_.recv(source=status.source)
