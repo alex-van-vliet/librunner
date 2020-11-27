@@ -1,4 +1,4 @@
-from librunner.Model import Model
+from librunner.model import Model
 from librunner.process import Process
 from librunner.main import main
 
