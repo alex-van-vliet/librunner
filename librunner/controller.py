@@ -19,7 +19,7 @@ class Controller:
         self.left_ = 0
 
     def send_all(self):
-        for i in range(1, self.process_.size_):
+        for i in range(1, self.process_.size()):
             try:
                 data = next(self.generator_)
                 self.left_ += 1
@@ -27,6 +27,10 @@ class Controller:
             except StopIteration:
                 self.generator_ = None
                 break
+
+    def quit(self):
+        for i in range(1, self.process_.size()):
+            self.process_.send(i, None)
 
     def __call__(self):
         def models():
@@ -49,7 +53,8 @@ class Controller:
                     self.process_.send(source, data)
                 except StopIteration:
                     self.generator_ = None
-        print('Finished')
+        print('Finished, quitting runners...')
+        self.quit()
         print('Top 3 runs:')
         results = sorted(results, key=lambda v: v[-1], reverse=True)
         for model, parameters, score in results[:3]:

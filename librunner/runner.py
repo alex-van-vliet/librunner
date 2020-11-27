@@ -11,6 +11,9 @@ class Runner:
 
     def __call__(self):
         while True:
-            model, parameters = self.process_.recv(0)
+            data = self.process_.recv(0)
+            if data is None:
+                break
+            model, parameters = data
             result = self.models_[model].create(parameters)()
             self.process_.send(0, (model, parameters, result))
