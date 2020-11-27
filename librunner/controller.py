@@ -1,12 +1,12 @@
-from typing import Generator, Optional, Tuple, Any
+from typing import Generator, Optional, Tuple, Any, List
 
+from .model import Model
 from .process import Process
 
 
 class Controller:
     process_: Process
-    models_: list
-    sent_: dict
+    models_: List[Model]
     generator_: Optional[Generator[Tuple[int, Any], None, None]]
     ended_: bool
     left_: int
@@ -14,7 +14,6 @@ class Controller:
     def __init__(self, process, models):
         self.process_ = process
         self.models_ = models
-        self.sent_ = {}
         self.generator_ = None
         self.left_ = 0
 

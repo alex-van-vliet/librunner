@@ -1,3 +1,5 @@
+from typing import Any, Tuple
+
 from mpi4py import MPI
 
 
@@ -17,13 +19,13 @@ class Process:
     def rank(self):
         return self.rank_
 
-    def send(self, destination, data):
+    def send(self, destination: int, data: Any):
         self.comm_.send(data, dest=destination)
 
-    def recv(self, source):
+    def recv(self, source: int) -> Any:
         return self.comm_.recv(source=source)
 
-    def recv_any(self):
+    def recv_any(self) -> Tuple[int, Any]:
         status = MPI.Status()
         self.comm_.Probe(status=status)
         return status.source, self.comm_.recv(source=status.source)

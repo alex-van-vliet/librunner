@@ -1,9 +1,12 @@
+from typing import List
+
+from .model import Model
 from .process import Process
 
 
 class Runner:
     process_: Process
-    models_: list
+    models_: List[Model]
 
     def __init__(self, process, models):
         self.process_ = process

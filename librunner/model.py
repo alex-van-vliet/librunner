@@ -1,7 +1,10 @@
+from typing import Callable, Any, List, Tuple, Mapping
+
+
 class Model:
     name_: str
-    creator_: callable
-    parameters_: list
+    creator_: Callable[[Mapping[str, Any]], Any]
+    parameters_: List[Tuple[str, List[Any]]]
 
     def __init__(self, name, creator):
         self.name_ = name
@@ -11,7 +14,7 @@ class Model:
     def name(self):
         return self.name_
 
-    def parametrize(self, name: str, values: list) -> 'Model':
+    def parametrize(self, name: str, values: List[Any]) -> 'Model':
         self.parameters_.append((name, values))
         return self
 
@@ -28,10 +31,10 @@ class Model:
 
         yield from generate(0)
 
-    def values(self, parameters):
+    def values(self, parameters: List[int]):
         return {name: values[parameter]
                 for (name, values), parameter
                 in zip(self.parameters_, parameters)}
 
-    def create(self, parameters):
+    def create(self, parameters: List[int]):
         return self.creator_(self.values(parameters))
