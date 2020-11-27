@@ -52,4 +52,8 @@ class Controller:
         print('Finished')
         print('Top 3 runs:')
         results = sorted(results, key=lambda v: v[-1], reverse=True)
-        print(results[:3])
+        for model, parameters, score in results[:3]:
+            print(f'Score: {score}, parameters: '
+                  + ', '.join(f'{key}={repr(value)}'
+                              for key, value
+                              in self.models_[model].values(parameters).items()))

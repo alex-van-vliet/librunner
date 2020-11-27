@@ -28,8 +28,10 @@ class Model:
 
         yield from generate(0)
 
+    def values(self, parameters):
+        return {name: values[parameter]
+                for (name, values), parameter
+                in zip(self.parameters_, parameters)}
+
     def create(self, parameters):
-        arguments = {name: values[parameter]
-                     for (name, values), parameter
-                     in zip(self.parameters_, parameters)}
-        return self.creator_(arguments)
+        return self.creator_(self.values(parameters))
