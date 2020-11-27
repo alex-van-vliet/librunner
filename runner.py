@@ -1,8 +1,6 @@
 from librunner.process import Process
+from librunner.main import main
 
 process = Process()
 
-if process.rank() == 0:
-    print('controller')
-else:
-    print('runner')
+main(process)
