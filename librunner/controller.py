@@ -74,6 +74,11 @@ class Controller:
                     try:
                         data = next(self.generator_)
                         self.left_ += 1
+                        model, parameters = data
+                        print(f'Running: '
+                              + ', '.join(f'{key}={repr(value)}'
+                                          for key, value
+                                          in self.models_[model].values(parameters).items()))
                         source.send(data)
                     except StopIteration:
                         self.generator_ = None
