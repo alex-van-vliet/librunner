@@ -21,6 +21,7 @@ class Controller:
     address_: Tuple[str, int]
     listener_: Optional[Listener]
     clients_: List[Connection]
+    results_: List[Tuple[int, List[int], float]]
 
     def __init__(self, models, nb_children, address):
         self.models_ = models
@@ -31,6 +32,10 @@ class Controller:
         self.address_ = address
         self.listener_ = None
         self.clients_ = []
+        self.results_ = []
+
+    def results(self):
+        return self.results_
 
     def __enter__(self):
         self.listener_ = Listener(self.address_, family='AF_INET')
@@ -56,14 +61,14 @@ class Controller:
 
         self.generator_ = models()
         self.left_ = 0
-        results = []
+        self.results_ = []
         while self.generator_ or self.left_ > 0:
             for source in wait([self.listener_._listener._socket, *self.clients_]):
                 if source == self.listener_._listener._socket:
                     source = self.listener_.accept()
                     self.clients_.append(source)
                 else:
-                    results.append(source.recv())
+                    self.results_.append(source.recv())
                     self.left_ -= 1
                 if self.generator_:
                     try:
@@ -77,11 +82,4 @@ class Controller:
                     source.close()
                     self.clients_.remove(source)
 
-        print('Finished.')
-        print('Top 3 runs:')
-        results = sorted(results, key=lambda v: v[-1], reverse=True)
-        for model, parameters, score in results[:3]:
-            print(f'Score: {score}, parameters: '
-                  + ', '.join(f'{key}={repr(value)}'
-                              for key, value
-                              in self.models_[model].values(parameters).items()))
+        self.results_ = sorted(self.results_, key=lambda v: v[-1], reverse=True)

@@ -24,4 +24,5 @@ models = [
         .parametrize('second', [1, 10, 100])
 ]
 
-main(models, 3, ('localhost', 8000))
+results = main(models, 3, ('localhost', 8000))
+print_results(models, results, k=None)
