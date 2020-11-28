@@ -1,27 +1,52 @@
-import time
+from sklearn.datasets import load_digits
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier
 
+from librunner.main import main, print_results
 from librunner.model import Model
-from librunner.main import main
 
 
-class ExampleModel:
-    first_: int
-    second_: int
+class KNeighbors:
+    n_neighbors_: int
 
-    def __init__(self, first, second):
-        self.first_ = first
-        self.second_ = second
+    def __init__(self, n_neighbors):
+        self.n_neighbors_ = n_neighbors
 
     def __call__(self):
-        print(self.first_, self.second_)
-        time.sleep(10)
-        return self.first_ + self.second_
+        X, y = load_digits(return_X_y=True)
+        X_train, X_val, y_train, y_val = train_test_split(X, y)
+
+        classifier = KNeighborsClassifier(n_neighbors=self.n_neighbors_)
+        classifier.fit(X_train, y_train)
+
+        return classifier.score(X_val, y_val)
+
+
+class RandomForest:
+    n_estimators_: int
+    max_depth_: int
+
+    def __init__(self, n_estimators, max_depth):
+        self.n_estimators_ = n_estimators
+        self.max_depth_ = max_depth
+
+    def __call__(self):
+        X, y = load_digits(return_X_y=True)
+        X_train, X_val, y_train, y_val = train_test_split(X, y)
+
+        classifier = RandomForestClassifier(n_estimators=self.n_estimators_, max_depth=self.max_depth_)
+        classifier.fit(X_train, y_train)
+
+        return classifier.score(X_val, y_val)
 
 
 models = [
-    Model('example-model', lambda parameters: ExampleModel(**parameters))
-        .parametrize('first', [0, 1])
-        .parametrize('second', [1, 10, 100])
+    Model('KNeighbors', lambda parameters: KNeighbors(**parameters))
+        .parametrize('n_neighbors', [1, 5, 10, 20, 40]),
+    Model('KNeighbors', lambda parameters: RandomForest(**parameters))
+        .parametrize('n_estimators', [50, 100, 200])
+        .parametrize('max_depth', [5, 10, 15])
 ]
 
 results = main(models, 3, ('localhost', 8000))
