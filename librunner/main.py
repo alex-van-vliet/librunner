@@ -2,14 +2,8 @@ from typing import List
 
 from .controller import Controller
 from .model import Model
-from .process import Process
-from .runner import Runner
 
 
-def main(process: Process, models: List[Model]):
-    if process.rank() == 0:
-        controller = Controller(process, models)
-        controller()
-    else:
-        runner = Runner(process, models)
-        runner()
+def main(models: List[Model], nb_children: int):
+    controller = Controller(models, nb_children)
+    controller()

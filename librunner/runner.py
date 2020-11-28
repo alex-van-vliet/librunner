@@ -1,22 +1,22 @@
+from multiprocessing.connection import Connection
 from typing import List
 
 from .model import Model
-from .process import Process
 
 
 class Runner:
-    process_: Process
     models_: List[Model]
+    pipe_: Connection
 
-    def __init__(self, process, models):
-        self.process_ = process
+    def __init__(self, models, pipe):
         self.models_ = models
+        self.pipe_ = pipe
 
     def __call__(self):
         while True:
-            data = self.process_.recv(0)
+            data = self.pipe_.recv()
             if data is None:
                 break
             model, parameters = data
             result = self.models_[model].create(parameters)()
-            self.process_.send(0, (model, parameters, result))
+            self.pipe_.send((model, parameters, result,))

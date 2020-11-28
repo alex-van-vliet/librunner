@@ -1,8 +1,5 @@
 from librunner.model import Model
-from librunner.process import Process
 from librunner.main import main
-
-process = Process()
 
 
 class ExampleModel:
@@ -24,4 +21,4 @@ models = [
         .parametrize('second', [1, 10, 100])
 ]
 
-main(process, models)
+main(models, 3)
