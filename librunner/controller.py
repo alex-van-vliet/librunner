@@ -1,4 +1,4 @@
-from multiprocessing.connection import Connection, Pipe, wait
+from multiprocessing.connection import Connection, wait, Listener
 from multiprocessing.context import Process
 from typing import Generator, Optional, Tuple, Any, List
 
@@ -6,9 +6,9 @@ from .model import Model
 from .runner import Runner
 
 
-def creator(models: List[Model], pipe: Connection):
-    runner = Runner(models, pipe)
-    runner()
+def creator(models: List[Model], address: Tuple[str, int]):
+    with Runner(models, address) as runner:
+        runner()
 
 
 class Controller:
@@ -18,44 +18,35 @@ class Controller:
     left_: int
     nb_children_: int
     children_: List[Process]
-    pipes_: List[Connection]
+    address_: Tuple[str, int]
+    listener_: Optional[Listener]
+    clients_: List[Connection]
 
-    def __init__(self, models, nb_children):
+    def __init__(self, models, nb_children, address):
         self.models_ = models
         self.generator_ = None
         self.left_ = 0
         self.children_ = []
-        self.pipes_ = []
         self.nb_children_ = nb_children
+        self.address_ = address
+        self.listener_ = None
+        self.clients_ = []
 
     def __enter__(self):
+        self.listener_ = Listener(self.address_, family='AF_INET')
         for child in range(self.nb_children_):
-            parent_conn, child_conn = Pipe()
-            self.pipes_.append(parent_conn)
-            self.children_.append(Process(target=creator, args=(self.models_, child_conn,)))
+            process = Process(target=creator, args=(self.models_, self.address_,))
+            process.start()
+            self.children_.append(process)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        for pipe in self.pipes_:
-            pipe.send(None)
+        for client in self.clients_:
+            client.send(None)
+            client.close()
         for child in self.children_:
             child.join()
-
-    def start(self):
-        for child, pipe in zip(self.children_, self.pipes_):
-            child.start()
-            try:
-                data = next(self.generator_)
-                self.left_ += 1
-                pipe.send(data)
-            except StopIteration:
-                self.generator_ = None
-                break
-
-    def receive(self):
-        responses = wait(self.pipes_, None)
-        for pipe in responses:
-            yield pipe, pipe.recv()
+        self.listener_.close()
 
     def __call__(self):
         def models():
@@ -63,21 +54,29 @@ class Controller:
                 for parameters in model():
                     yield i, parameters
 
-        self.left_ = 0
         self.generator_ = models()
-        self.start()
+        self.left_ = 0
         results = []
-        while self.left_ > 0:
-            for pipe, result in self.receive():
-                results.append(result)
-                self.left_ -= 1
+        while self.generator_ or self.left_ > 0:
+            for source in wait([self.listener_._listener._socket, *self.clients_]):
+                if source == self.listener_._listener._socket:
+                    source = self.listener_.accept()
+                    self.clients_.append(source)
+                else:
+                    results.append(source.recv())
+                    self.left_ -= 1
                 if self.generator_:
                     try:
                         data = next(self.generator_)
                         self.left_ += 1
-                        pipe.send(data)
+                        source.send(data)
                     except StopIteration:
                         self.generator_ = None
+                if not self.generator_:
+                    source.send(None)
+                    source.close()
+                    self.clients_.remove(source)
+
         print('Finished.')
         print('Top 3 runs:')
         results = sorted(results, key=lambda v: v[-1], reverse=True)

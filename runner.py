@@ -1,3 +1,5 @@
+import time
+
 from librunner.model import Model
 from librunner.main import main
 
@@ -12,6 +14,7 @@ class ExampleModel:
 
     def __call__(self):
         print(self.first_, self.second_)
+        time.sleep(10)
         return self.first_ + self.second_
 
 
@@ -21,4 +24,4 @@ models = [
         .parametrize('second', [1, 10, 100])
 ]
 
-main(models, 3)
+main(models, 3, ('localhost', 8000))

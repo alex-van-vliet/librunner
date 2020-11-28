@@ -1,22 +1,31 @@
-from multiprocessing.connection import Connection
-from typing import List
+from multiprocessing.connection import Connection, Client
+from typing import List, Tuple, Optional
 
 from .model import Model
 
 
 class Runner:
     models_: List[Model]
-    pipe_: Connection
+    address_: Tuple[str, int]
+    client_: Optional[Connection]
 
-    def __init__(self, models, pipe):
+    def __init__(self, models, address):
         self.models_ = models
-        self.pipe_ = pipe
+        self.address_ = address
+        self.client_ = None
+
+    def __enter__(self):
+        self.client_ = Client(self.address_)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.client_.close()
 
     def __call__(self):
         while True:
-            data = self.pipe_.recv()
+            data = self.client_.recv()
             if data is None:
                 break
             model, parameters = data
             result = self.models_[model].create(parameters)()
-            self.pipe_.send((model, parameters, result,))
+            self.client_.send((model, parameters, result,))
