@@ -44,7 +44,7 @@ class RandomForest:
 models = [
     Model('KNeighbors', lambda parameters: KNeighbors(**parameters))
         .parametrize('n_neighbors', [1, 5, 10, 20, 40]),
-    Model('KNeighbors', lambda parameters: RandomForest(**parameters))
+    Model('RandomForest', lambda parameters: RandomForest(**parameters))
         .parametrize('n_estimators', [50, 100, 200])
         .parametrize('max_depth', [5, 10, 15])
 ]
