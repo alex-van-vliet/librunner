@@ -6,12 +6,13 @@ from .model import Model
 from .runner import Runner
 
 
-def creator(models: List[Model], address: Tuple[str, int]):
-    with Runner(models, address) as runner:
+def creator(data: Any, models: List[Model], address: Tuple[str, int]):
+    with Runner(data, models, address) as runner:
         runner()
 
 
 class Controller:
+    data_: Any
     models_: List[Model]
     generator_: Optional[Generator[Tuple[int, Any], None, None]]
     ended_: bool
@@ -23,7 +24,8 @@ class Controller:
     clients_: List[Connection]
     results_: List[Tuple[int, List[int], float]]
 
-    def __init__(self, models, nb_children, address):
+    def __init__(self, data, models, nb_children, address):
+        self.data_ = data
         self.models_ = models
         self.generator_ = None
         self.left_ = 0
@@ -40,7 +42,7 @@ class Controller:
     def __enter__(self):
         self.listener_ = Listener(self.address_, family='AF_INET')
         for child in range(self.nb_children_):
-            process = Process(target=creator, args=(self.models_, self.address_,))
+            process = Process(target=creator, args=(self.data_, self.models_, self.address_,))
             process.start()
             self.children_.append(process)
         return self

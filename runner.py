@@ -13,8 +13,8 @@ class KNeighbors:
     def __init__(self, n_neighbors):
         self.n_neighbors_ = n_neighbors
 
-    def __call__(self):
-        X, y = load_digits(return_X_y=True)
+    def __call__(self, data):
+        X, y = data
         X_train, X_val, y_train, y_val = train_test_split(X, y)
 
         classifier = KNeighborsClassifier(n_neighbors=self.n_neighbors_)
@@ -31,8 +31,8 @@ class RandomForest:
         self.n_estimators_ = n_estimators
         self.max_depth_ = max_depth
 
-    def __call__(self):
-        X, y = load_digits(return_X_y=True)
+    def __call__(self, data):
+        X, y = data
         X_train, X_val, y_train, y_val = train_test_split(X, y)
 
         classifier = RandomForestClassifier(n_estimators=self.n_estimators_, max_depth=self.max_depth_)
@@ -49,5 +49,5 @@ models = [
         .parametrize('max_depth', [5, 10, 15])
 ]
 
-results = main(models, 3, ('localhost', 8000))
+results = main(load_digits(return_X_y=True), models, 3, ('localhost', 8000))
 print_results(models, results, k=None)

@@ -1,11 +1,11 @@
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Any
 
 from .controller import Controller
 from .model import Model
 
 
-def main(models: List[Model], nb_children: int, address: Tuple[str, int]):
-    with Controller(models, nb_children, address) as controller:
+def main(data: Any, models: List[Model], nb_children: int, address: Tuple[str, int]):
+    with Controller(data, models, nb_children, address) as controller:
         controller()
         return controller.results()
 

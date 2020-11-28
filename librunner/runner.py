@@ -1,15 +1,17 @@
 from multiprocessing.connection import Connection, Client
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Any
 
 from .model import Model
 
 
 class Runner:
+    data_: Any
     models_: List[Model]
     address_: Tuple[str, int]
     client_: Optional[Connection]
 
-    def __init__(self, models, address):
+    def __init__(self, data, models, address):
+        self.data_ = data
         self.models_ = models
         self.address_ = address
         self.client_ = None
@@ -27,5 +29,5 @@ class Runner:
             if data is None:
                 break
             model, parameters = data
-            result = self.models_[model].create(parameters)()
+            result = self.models_[model].create(parameters)(self.data_)
             self.client_.send((model, parameters, result,))
