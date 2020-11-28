@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="librunner",
-    version="0.0.1",
+    version="0.0.2",
     author="Alex van Vliet",
     author_email="alex@vanvliet.pro",
     description="A package to run python models in parallel",
