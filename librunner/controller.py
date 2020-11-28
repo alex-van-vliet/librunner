@@ -16,19 +16,30 @@ class Controller:
     generator_: Optional[Generator[Tuple[int, Any], None, None]]
     ended_: bool
     left_: int
+    nb_children_: int
     children_: List[Process]
     pipes_: List[Connection]
 
-    def __init__(self, models, nb_children: int):
+    def __init__(self, models, nb_children):
         self.models_ = models
         self.generator_ = None
         self.left_ = 0
         self.children_ = []
         self.pipes_ = []
-        for child in range(nb_children):
+        self.nb_children_ = nb_children
+
+    def __enter__(self):
+        for child in range(self.nb_children_):
             parent_conn, child_conn = Pipe()
             self.pipes_.append(parent_conn)
             self.children_.append(Process(target=creator, args=(self.models_, child_conn,)))
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        for pipe in self.pipes_:
+            pipe.send(None)
+        for child in self.children_:
+            child.join()
 
     def start(self):
         for child, pipe in zip(self.children_, self.pipes_):
@@ -45,12 +56,6 @@ class Controller:
         responses = wait(self.pipes_, None)
         for pipe in responses:
             yield pipe, pipe.recv()
-
-    def quit(self):
-        for pipe in self.pipes_:
-            pipe.send(None)
-        for child in self.children_:
-            child.join()
 
     def __call__(self):
         def models():
@@ -73,8 +78,7 @@ class Controller:
                         pipe.send(data)
                     except StopIteration:
                         self.generator_ = None
-        print('Finished, quitting runners...')
-        self.quit()
+        print('Finished.')
         print('Top 3 runs:')
         results = sorted(results, key=lambda v: v[-1], reverse=True)
         for model, parameters, score in results[:3]:

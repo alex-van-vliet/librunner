@@ -5,5 +5,5 @@ from .model import Model
 
 
 def main(models: List[Model], nb_children: int):
-    controller = Controller(models, nb_children)
-    controller()
+    with Controller(models, nb_children) as controller:
+        controller()
